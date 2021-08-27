@@ -28,7 +28,7 @@
 // You can also use hardware definitions related to all other peripherals on your dev board because
 // the sample_appliance header file recursively includes underlying hardware definition headers.
 // See https://aka.ms/azsphere-samples-hardwaredefinitions for further details on this feature.
-#include <hw/sample_appliance.h>
+#include <hw/wiznet_asg210_v1.2.h>
 
 /// <summary>
 /// Exit codes for this application. These are used for the
@@ -45,7 +45,8 @@ int main(void)
 {
     Log_Debug("Starting CMake Hello World application...\n");
 
-    int fd = GPIO_OpenAsOutput(SAMPLE_LED, GPIO_OutputMode_PushPull, GPIO_Value_High);
+    int fd = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED1_AZURE, GPIO_OutputMode_PushPull,
+                               GPIO_Value_High);
     if (fd == -1) {
         Log_Debug(
             "Error opening GPIO: %s (%d). Check that app_manifest.json includes the GPIO used.\n",

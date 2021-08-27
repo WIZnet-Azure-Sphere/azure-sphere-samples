@@ -5,7 +5,7 @@
   "EntryPoint": "/bin/app",
   "CmdArgs": [],
   "Capabilities": {
-    "Gpio": [ "$SAMPLE_LED" ]
+    "Gpio": [ "$WIZNET_ASG210_STATUS_LED1_AZURE" ]
   },
   "ApplicationType": "Default"
 }

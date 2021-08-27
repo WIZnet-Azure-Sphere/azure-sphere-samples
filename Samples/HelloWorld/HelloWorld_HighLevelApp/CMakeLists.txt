@@ -15,8 +15,8 @@ target_link_libraries(${PROJECT_NAME} applibs gcc_s c)
 # When using this sample with other hardware, replace TARGET_HARDWARE with the name of that hardware.
 # For example, to target the Avnet MT3620 Starter Kit, use the value "avnet_mt3620_sk".
 # See https://aka.ms/azsphere-samples-hardwaredefinitions for further details on this feature.
-set(TARGET_HARDWARE "mt3620_rdb")
-set(TARGET_DEFINITION "sample_appliance.json")
+set(TARGET_HARDWARE "wiznet_asg210")
+set(TARGET_DEFINITION "wiznet_asg210_v1.2.json")
 
 # This finds the path to the target hardware definition, in one of two places.
 # If the sample is cloned from the github repo, then the path to the target hardware is 
