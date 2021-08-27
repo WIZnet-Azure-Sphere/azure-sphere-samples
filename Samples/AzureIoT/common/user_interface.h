@@ -39,4 +39,10 @@ void UserInterface_Cleanup(void);
 /// Set the status of the status LED.
 /// </summary>
 /// <param name="status">Status LED status.</param>
-void UserInterface_SetStatus(bool status);
+void UserInterface_SetStatus_AzureLED(bool status);
+
+/// <summary>
+/// Set the status of the status LED.
+/// </summary>
+/// <param name="status">Status LED status.</param>
+void UserInterface_SetStatus_WifiLED(bool status);

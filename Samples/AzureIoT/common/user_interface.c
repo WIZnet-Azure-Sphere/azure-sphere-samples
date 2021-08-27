@@ -20,7 +20,7 @@
 // You can also use hardware definitions related to all other peripherals on your dev board because
 // the sample_appliance header file recursively includes underlying hardware definition headers.
 // See https://aka.ms/azsphere-samples-hardwaredefinitions for further details on this feature.
-#include <hw/sample_appliance.h>
+#include <hw/wiznet_asg210_v1.2.h>
 
 #include "eventloop_timer_utilities.h"
 
@@ -30,8 +30,8 @@ static void CloseFdAndPrintError(int fd, const char *fdName);
 
 // File descriptors - initialized to invalid value
 static int buttonAGpioFd = -1;
-static int buttonBGpioFd = -1;
-static int statusLedGpioFd = -1;
+static int statusAzureLedGpioFd = -1;
+static int statusWifiLedGpioFd = -1;
 
 static EventLoopTimer *buttonPollTimer = NULL;
 
@@ -40,7 +40,6 @@ static UserInterface_ButtonPressedCallbackType buttonPressedCallbackFunction = N
 
 // State variables
 static GPIO_Value_Type buttonAState = GPIO_Value_High;
-static GPIO_Value_Type buttonBState = GPIO_Value_High;
 
 /// <summary>
 ///     Check whether a given button has just been pressed.
@@ -79,9 +78,6 @@ static void ButtonPollTimerEventHandler(EventLoopTimer *timer)
         buttonPressedCallbackFunction(UserInterface_Button_A);
     }
 
-    if (IsButtonPressed(buttonBGpioFd, &buttonBState) && NULL != buttonPressedCallbackFunction) {
-        buttonPressedCallbackFunction(UserInterface_Button_B);
-    }
 }
 
 /// <summary>
@@ -106,29 +102,26 @@ ExitCode UserInterface_Initialise(EventLoop *el,
     failureCallbackFunction = failureCallback;
     buttonPressedCallbackFunction = buttonPressedCallback;
 
-    // Open SAMPLE_BUTTON_1 GPIO as input
+    // Open USER_BUTTON GPIO as input
     Log_Debug("Opening SAMPLE_BUTTON_1 as input.\n");
-    buttonAGpioFd = GPIO_OpenAsInput(SAMPLE_BUTTON_1);
+    buttonAGpioFd = GPIO_OpenAsInput(WIZNET_ASG210_USER_BUTTON_SW2);
     if (buttonAGpioFd == -1) {
-        Log_Debug("ERROR: Could not open SAMPLE_BUTTON_1: %s (%d).\n", strerror(errno), errno);
+        Log_Debug("ERROR: Could not open USER_BUTTON: %s (%d).\n", strerror(errno), errno);
         return ExitCode_Init_Button;
-    }
+    }    
 
-    // Open SAMPLE_BUTTON_2 GPIO as input
-    Log_Debug("Opening SAMPLE_BUTTON_2 as input.\n");
-    buttonBGpioFd = GPIO_OpenAsInput(SAMPLE_BUTTON_2);
-    if (buttonBGpioFd == -1) {
-        Log_Debug("ERROR: Could not open SAMPLE_BUTTON_2: %s (%d).\n", strerror(errno), errno);
-        return ExitCode_Init_Button;
-    }
-
-    // SAMPLE_LED is used to show state
-    Log_Debug("Opening SAMPLE_LED as output.\n");
-    statusLedGpioFd = GPIO_OpenAsOutput(SAMPLE_LED, GPIO_OutputMode_PushPull, GPIO_Value_High);
-    if (statusLedGpioFd == -1) {
+    // WIFI_CONNECTION_LED is used to show state
+    Log_Debug("Opening WIFI_CONNECTION_LED as output.\n");
+    statusWifiLedGpioFd = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED2_WIFI, GPIO_OutputMode_PushPull,
+                                        GPIO_Value_High);
+    if (statusWifiLedGpioFd == -1) {
         Log_Debug("ERROR: Could not open SAMPLE_LED: %s (%d).\n", strerror(errno), errno);
         return ExitCode_Init_Led;
     }
+
+    // KSIA Academy
+    // define GPIO for Azure Connection LED
+    /* user code */
 
     // Set up a timer to poll for button events.
     static const struct timespec buttonPressCheckPeriod = {.tv_sec = 0, .tv_nsec = 1000 * 1000};
@@ -146,16 +139,15 @@ void UserInterface_Cleanup(void)
     DisposeEventLoopTimer(buttonPollTimer);
 
     // Leave the LEDs off
-    if (statusLedGpioFd >= 0) {
-        GPIO_SetValue(statusLedGpioFd, GPIO_Value_High);
+    if (statusWifiLedGpioFd >= 0) {
+        GPIO_SetValue(statusWifiLedGpioFd, GPIO_Value_High);
     }
 
-    CloseFdAndPrintError(buttonAGpioFd, "ButtonA");
-    CloseFdAndPrintError(buttonBGpioFd, "ButtonB");
-    CloseFdAndPrintError(statusLedGpioFd, "StatusLed");
+    CloseFdAndPrintError(buttonAGpioFd, "UserButton");
+    CloseFdAndPrintError(statusWifiLedGpioFd, "WifiStatusLed");
 }
 
-void UserInterface_SetStatus(bool status)
+void UserInterface_SetStatus_WifiLED(bool status)
 {
-    GPIO_SetValue(statusLedGpioFd, status ? GPIO_Value_Low : GPIO_Value_High);
+    GPIO_SetValue(statusWifiLedGpioFd, status ? GPIO_Value_Low : GPIO_Value_High);
 }

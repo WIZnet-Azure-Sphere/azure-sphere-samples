@@ -35,6 +35,11 @@ typedef void (*Cloud_ConnectionChangedCallbackType)(bool connected);
 /// </summary>
 typedef struct {
     float temperature;
+    
+    // KSIA Academy
+    // another telemetry
+    /* user code */
+
 } Cloud_Telemetry;
 
 /// <summary>
@@ -78,7 +83,6 @@ typedef enum {
 /// <returns>An <see cref="ExitCode" /> indicating success or failure.</returns>
 ExitCode Cloud_Initialize(
     EventLoop *el, void *backendContext, ExitCode_CallbackType failureCallback,
-    Cloud_TelemetryUploadEnabledChangedCallbackType telemetryUploadEnabledChangedCallback,
     Cloud_DisplayAlertCallbackType displayAlertCallback,
     Cloud_ConnectionChangedCallbackType connectionChangedCallback);
 

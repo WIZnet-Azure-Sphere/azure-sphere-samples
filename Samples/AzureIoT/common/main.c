@@ -60,21 +60,22 @@ static void ButtonPressedCallbackHandler(UserInterface_Button button);
 // Cloud
 static const char *CloudResultToString(Cloud_Result result);
 static void ConnectionChangedCallbackHandler(bool connected);
-static void CloudTelemetryUploadEnabledChangedCallbackHandler(bool status);
 static void DisplayAlertCallbackHandler(const char *alertMessage);
 
 // Timer / polling
 static EventLoop *eventLoop = NULL;
 static EventLoopTimer *telemetryTimer = NULL;
 
+// Cloud connection check
 static bool isConnected = false;
 
-// Business logic
-static void SetThermometerTelemetryUploadEnabled(bool uploadEnabled);
-static bool telemetryUploadEnabled = false; // False by default - do not send telemetry until told
-                                            // by the user or the cloud
+// Cloud Property/Telemetry
+static const char *serialNumber = "ksiatuser01";
+static Cloud_Telemetry telemetry = {.temperature = 30.f};
 
-static const char *serialNumber = "TEMPMON-01234";
+// KSIA Academy
+// another telemetry
+/* user code */
 
 /// <summary>
 ///     Signal handler for termination requests. This handler must be async-signal-safe.
@@ -92,11 +93,6 @@ int main(int argc, char *argv[])
 {
     Log_Debug("Azure IoT Application starting.\n");
 
-    bool isNetworkingReady = false;
-    if ((Networking_IsNetworkingReady(&isNetworkingReady) == -1) || !isNetworkingReady) {
-        Log_Debug("WARNING: Network is not ready. Device cannot connect until network is ready.\n");
-    }
-
     exitCode = Options_ParseArgs(argc, argv);
 
     if (exitCode != ExitCode_Success) {
@@ -104,6 +100,16 @@ int main(int argc, char *argv[])
     }
 
     exitCode = InitPeripheralsAndHandlers();
+
+    bool isNetworkingReady = false;
+    if ((Networking_IsNetworkingReady(&isNetworkingReady) == -1) || !isNetworkingReady) {
+        Log_Debug("WARNING: Network is not ready. Device cannot connect until network is ready.\n");
+
+        // KSIA Academy
+        // control WiFi LED 
+        /* user code */   
+
+    }
 
     // Main loop
     while (exitCode == ExitCode_Success) {
@@ -140,42 +146,24 @@ static const char *CloudResultToString(Cloud_Result result)
     return "Unknown Cloud_Result";
 }
 
-static void SetThermometerTelemetryUploadEnabled(bool uploadEnabled)
-{
-    telemetryUploadEnabled = uploadEnabled;
-    UserInterface_SetStatus(uploadEnabled);
-
-    Cloud_Result result = Cloud_SendThermometerTelemetryUploadEnabledChangedEvent(uploadEnabled);
-    if (result != Cloud_Result_OK) {
-        Log_Debug(
-            "WARNING: Could not send thermometer telemetry upload enabled changed event to cloud: "
-            "%s",
-            CloudResultToString(result));
-    }
-}
-
 static void ButtonPressedCallbackHandler(UserInterface_Button button)
 {
     if (button == UserInterface_Button_A) {
-        bool newTelemetryUploadEnabled = !telemetryUploadEnabled;
-        Log_Debug("INFO: Telemetry upload enabled state changed (via button press): %s\n",
-                  newTelemetryUploadEnabled ? "enabled" : "disabled");
-        SetThermometerTelemetryUploadEnabled(newTelemetryUploadEnabled);
-    } else if (button == UserInterface_Button_B) {
-        Log_Debug("INFO: Device moved.\n");
-        Cloud_Result result = Cloud_SendThermometerMovedEvent();
-        if (result != Cloud_Result_OK) {
-            Log_Debug("WARNING: Could not sent thermometer moved event to cloud: %s\n",
-                      CloudResultToString(result));
+        if (isConnected) {
+
+            // KSIA Academy
+            // another telemetry
+            /* user code */
+
+            Cloud_Result result = Cloud_SendTelemetry(&telemetry);
+            if (result != Cloud_Result_OK) {
+                Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
+                            CloudResultToString(result));
+            } else {
+                Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
+            }
         }
     }
-}
-
-static void CloudTelemetryUploadEnabledChangedCallbackHandler(bool uploadEnabled)
-{
-    Log_Debug("INFO: Thermometer telemetry upload enabled state changed (via cloud): %s\n",
-              uploadEnabled ? "enabled" : "disabled");
-    SetThermometerTelemetryUploadEnabled(uploadEnabled);
 }
 
 static void DisplayAlertCallbackHandler(const char *alertMessage)
@@ -188,17 +176,27 @@ static void ConnectionChangedCallbackHandler(bool connected)
     isConnected = connected;
 
     if (isConnected) {
+        
+        // KSIA Academy
+        // control Azure Connection LED
+        /* user code */
+
         Cloud_Result result = Cloud_SendDeviceDetails(serialNumber);
         if (result != Cloud_Result_OK) {
             Log_Debug("WARNING: Could not send device details to cloud: %s\n",
                       CloudResultToString(result));
         }
-    }
+    } 
 }
 
 static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
 {
-    static Cloud_Telemetry telemetry = {.temperature = 50.f};
+    // init telemetry values
+    telemetry.temperature = 30.f;
+
+    // KSIA Academy
+    // another telemetry
+    /* user code */
 
     if (ConsumeEventLoopTimerEvent(timer) != 0) {
         exitCode = ExitCode_TelemetryTimer_Consume;
@@ -206,16 +204,18 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
     }
 
     if (isConnected) {
-        if (telemetryUploadEnabled) {
-            // Generate a simulated temperature.
-            float delta = ((float)(rand() % 41)) / 20.0f - 1.0f; // between -1.0 and +1.0
-            telemetry.temperature += delta;
+        // Generate a simulated temperature.
+        float delta = ((float)(rand() % 20)) / 20.0f - 1.0f; // between -1.0 and +1.0
+        telemetry.temperature += delta;
+            
+        // KSIA Academy
+        // another telemetry
+        /* user code */
 
-            Cloud_Result result = Cloud_SendTelemetry(&telemetry);
-            if (result != Cloud_Result_OK) {
-                Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
-                          CloudResultToString(result));
-            }
+        Cloud_Result result = Cloud_SendTelemetry(&telemetry);
+        if (result != Cloud_Result_OK) {
+            Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
+                        CloudResultToString(result));
         } else {
             Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
         }
@@ -256,13 +256,11 @@ static ExitCode InitPeripheralsAndHandlers(void)
         return interfaceExitCode;
     }
 
-    UserInterface_SetStatus(telemetryUploadEnabled);
-
     void *connectionContext = Options_GetConnectionContext();
 
     return Cloud_Initialize(eventLoop, connectionContext, ExitCodeCallbackHandler,
-                            CloudTelemetryUploadEnabledChangedCallbackHandler,
-                            DisplayAlertCallbackHandler, ConnectionChangedCallbackHandler);
+                            DisplayAlertCallbackHandler,
+                            ConnectionChangedCallbackHandler);
 }
 
 /// <summary>

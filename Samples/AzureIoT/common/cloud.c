@@ -18,6 +18,9 @@
 // methods, etc) into business domain concepts (telemetry, upload enabled, alarm raised)
 
 static const char azureSphereModelId[] = "dtmi:com:example:azuresphere:thermometer;1";
+// KSIA Academy
+// another telemetry
+/* user code */
 
 // Azure IoT Hub callback handlers
 static void DeviceTwinCallbackHandler(const char *nullTerminatedJsonString);
@@ -49,16 +52,9 @@ unsigned int latestVersion = 1;
 
 ExitCode Cloud_Initialize(EventLoop *el, void *backendContext,
                           ExitCode_CallbackType failureCallback,
-                          Cloud_TelemetryUploadEnabledChangedCallbackType
-                              thermometerTelemetryUploadEnabledChangedCallback,
                           Cloud_DisplayAlertCallbackType displayAlertCallback,
                           Cloud_ConnectionChangedCallbackType connectionChangedCallback)
 {
-    if (thermometerTelemetryUploadEnabledChangedCallback != NULL) {
-        thermometerTelemetryUploadEnabledChangedCallbackFunction =
-            thermometerTelemetryUploadEnabledChangedCallback;
-    }
-
     if (displayAlertCallback != NULL) {
         displayAlertCallbackFunction = displayAlertCallback;
     }
@@ -100,6 +96,11 @@ Cloud_Result Cloud_SendTelemetry(const Cloud_Telemetry *telemetry)
     JSON_Value *telemetryValue = json_value_init_object();
     JSON_Object *telemetryRoot = json_value_get_object(telemetryValue);
     json_object_dotset_number(telemetryRoot, "temperature", telemetry->temperature);
+
+    // KSIA Academy
+    // another telemetry
+    /* user code */
+
     char *serializedTelemetry = json_serialize_to_string(telemetryValue);
     AzureIoT_Result aziotResult = AzureIoT_SendTelemetry(serializedTelemetry, NULL);
     Cloud_Result result = AzureIoTToCloudResult(aziotResult);

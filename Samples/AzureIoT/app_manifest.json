@@ -3,11 +3,14 @@
   "Name": "AzureIoT",
   "ComponentId": "819255ff-8640-41fd-aea7-f85d34c491d5",
   "EntryPoint": "/bin/app",
-  "CmdArgs": [ ],
+  "CmdArgs": [ "--ScopeID" ],
   "Capabilities": {
-    "AllowedConnections": [],
-    "Gpio": [ "$SAMPLE_BUTTON_1", "$SAMPLE_BUTTON_2", "$SAMPLE_LED" ],
-    "DeviceAuthentication": "00000000-0000-0000-0000-000000000000"
+    "AllowedConnections": [
+    ],
+    "Gpio": [ "$WIZNET_ASG210_USER_BUTTON_SW2", "$WIZNET_ASG210_STATUS_LED1_AZURE", "$WIZNET_ASG210_STATUS_LED2_WIFI" ],
+    "DeviceAuthentication": "00000000-0000-0000-0000-0000000000000000",
+    "NetworkConfig": true,
+    "WifiConfig": true
   },
   "ApplicationType": "Default"
 }
