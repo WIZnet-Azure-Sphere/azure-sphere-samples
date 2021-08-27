@@ -5,7 +5,7 @@
   "EntryPoint": "/bin/app",
   "CmdArgs": [],
   "Capabilities": {
-    "Gpio": [ "$WIZNET_ASG210_STATUS_LED1_AZURE" ]
+    "Gpio": [ "$WIZNET_ASG210_STATUS_LED1_AZURE", "$WIZNET_ASG210_STATUS_LED2_WIFI", "$WIZNET_ASG210_STATUS_LED3_ETHERNET", "$WIZNET_ASG210_STATUS_LED4_INTERFACE", "$WIZNET_ASG210_STATUS_LED6_BLUETOOTH" ]
   },
   "ApplicationType": "Default"
 }

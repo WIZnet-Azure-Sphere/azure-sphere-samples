@@ -45,20 +45,24 @@ int main(void)
 {
     Log_Debug("Starting CMake Hello World application...\n");
 
-    int fd = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED1_AZURE, GPIO_OutputMode_PushPull,
+    int LED1 = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED1_AZURE, GPIO_OutputMode_PushPull,
                                GPIO_Value_High);
-    if (fd == -1) {
+    if (LED1 == -1) {
         Log_Debug(
             "Error opening GPIO: %s (%d). Check that app_manifest.json includes the GPIO used.\n",
             strerror(errno), errno);
         return ExitCode_Main_Led;
     }
 
+    // KSIA Academy
+    // define LEDs
+    /* user code */
+
     const struct timespec sleepTime = {.tv_sec = 1, .tv_nsec = 0};
     while (true) {
-        GPIO_SetValue(fd, GPIO_Value_Low);
+        GPIO_SetValue(LED1, GPIO_Value_Low);
         nanosleep(&sleepTime, NULL);
-        GPIO_SetValue(fd, GPIO_Value_High);
+        GPIO_SetValue(LED1, GPIO_Value_High);
         nanosleep(&sleepTime, NULL);
     }
 }
