@@ -38,6 +38,8 @@ typedef struct {
     
     // KSIA Academy
     // another telemetry
+    float humidity;
+    float voltage;
     /* user code */
 
 } Cloud_Telemetry;

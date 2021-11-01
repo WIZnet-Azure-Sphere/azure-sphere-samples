@@ -122,6 +122,14 @@ ExitCode UserInterface_Initialise(EventLoop *el,
     // KSIA Academy
     // define GPIO for Azure Connection LED
     /* user code */
+    // AzureCentral_CONNECTION_LED is used to show state
+    Log_Debug("Opening AzureCentral_CONNECTION_LED as output.\n");
+    statusAzureLedGpioFd = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED1_AZURE,
+                                            GPIO_OutputMode_PushPull, GPIO_Value_High);
+    if (statusAzureLedGpioFd == -1) {
+        Log_Debug("ERROR: Could not open SAMPLE_LED: %s (%d).\n", strerror(errno), errno);
+        return ExitCode_Init_Led;
+    }
 
     // Set up a timer to poll for button events.
     static const struct timespec buttonPressCheckPeriod = {.tv_sec = 0, .tv_nsec = 1000 * 1000};
@@ -143,11 +151,22 @@ void UserInterface_Cleanup(void)
         GPIO_SetValue(statusWifiLedGpioFd, GPIO_Value_High);
     }
 
+    // Leave the LEDs off
+    if (statusAzureLedGpioFd >= 0) {
+        GPIO_SetValue(statusAzureLedGpioFd, GPIO_Value_High);
+    }
+
     CloseFdAndPrintError(buttonAGpioFd, "UserButton");
     CloseFdAndPrintError(statusWifiLedGpioFd, "WifiStatusLed");
+    CloseFdAndPrintError(statusAzureLedGpioFd, "AzureStatusLed");
 }
 
 void UserInterface_SetStatus_WifiLED(bool status)
 {
     GPIO_SetValue(statusWifiLedGpioFd, status ? GPIO_Value_Low : GPIO_Value_High);
+}
+
+void UserInterface_SetStatus_AzureLED(bool status)
+{
+    GPIO_SetValue(statusAzureLedGpioFd, status ? GPIO_Value_Low : GPIO_Value_High);
 }

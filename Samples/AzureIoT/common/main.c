@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         // KSIA Academy
         // control WiFi LED 
         /* user code */   
-
+        UserInterface_SetStatus_WifiLED(isNetworkingReady);
     }
 
     // Main loop
@@ -153,7 +153,16 @@ static void ButtonPressedCallbackHandler(UserInterface_Button button)
 
             // KSIA Academy
             // another telemetry
+
+            // Generate a simulated humidity.
+            telemetry.humidity += 20;
+
             /* user code */
+            // init telemetry values
+
+            // Generate a simulated temperature.            
+            telemetry.temperature += 20;
+            telemetry.voltage += 20;
 
             Cloud_Result result = Cloud_SendTelemetry(&telemetry);
             if (result != Cloud_Result_OK) {
@@ -180,6 +189,7 @@ static void ConnectionChangedCallbackHandler(bool connected)
         // KSIA Academy
         // control Azure Connection LED
         /* user code */
+        UserInterface_SetStatus_AzureLED(isConnected);
 
         Cloud_Result result = Cloud_SendDeviceDetails(serialNumber);
         if (result != Cloud_Result_OK) {
@@ -197,7 +207,9 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
     // KSIA Academy
     // another telemetry
     /* user code */
-
+    telemetry.humidity = 50.0f;
+    telemetry.voltage = 0.0f;
+    
     if (ConsumeEventLoopTimerEvent(timer) != 0) {
         exitCode = ExitCode_TelemetryTimer_Consume;
         return;
@@ -211,6 +223,11 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
         // KSIA Academy
         // another telemetry
         /* user code */
+        float alpha = ((float)(rand() % 20)) / 20.0f - 1.0f; // between -1.0 and +1.0
+        telemetry.humidity += alpha;
+
+        float beta = (float)(rand() % 20);
+        telemetry.voltage += beta;
 
         Cloud_Result result = Cloud_SendTelemetry(&telemetry);
         if (result != Cloud_Result_OK) {

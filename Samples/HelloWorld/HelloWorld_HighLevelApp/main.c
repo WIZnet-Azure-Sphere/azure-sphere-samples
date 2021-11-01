@@ -57,10 +57,53 @@ int main(void)
     // KSIA Academy
     // define LEDs
     /* user code */
+    int LED2 = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED2_WIFI, GPIO_OutputMode_PushPull,
+                                 GPIO_Value_High);
+    if (LED2 == -1) {
+        Log_Debug(
+            "Error opening GPIO: %s (%d). Check that app_manifest.json includes the GPIO used.\n",
+            strerror(errno), errno);
+        return ExitCode_Main_Led;
+    }
+
+    int LED3 = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED3_ETHERNET, GPIO_OutputMode_PushPull,
+                                 GPIO_Value_High);
+    if (LED3 == -1) {
+        Log_Debug(
+            "Error opening GPIO: %s (%d). Check that app_manifest.json includes the GPIO used.\n",
+            strerror(errno), errno);
+        return ExitCode_Main_Led;
+    }
+
+    int LED4 = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED4_INTERFACE, GPIO_OutputMode_PushPull,
+                                 GPIO_Value_High);
+    if (LED4 == -1) {
+        Log_Debug(
+            "Error opening GPIO: %s (%d). Check that app_manifest.json includes the GPIO used.\n",
+            strerror(errno), errno);
+        return ExitCode_Main_Led;
+    }
+
+    int LED5 = GPIO_OpenAsOutput(WIZNET_ASG210_STATUS_LED6_BLUETOOTH, GPIO_OutputMode_PushPull,
+                                 GPIO_Value_High);
+    if (LED5 == -1) {
+        Log_Debug(
+            "Error opening GPIO: %s (%d). Check that app_manifest.json includes the GPIO used.\n",
+            strerror(errno), errno);
+        return ExitCode_Main_Led;
+    }
 
     const struct timespec sleepTime = {.tv_sec = 1, .tv_nsec = 0};
     while (true) {
         GPIO_SetValue(LED1, GPIO_Value_Low);
+        nanosleep(&sleepTime, NULL);
+        GPIO_SetValue(LED2, GPIO_Value_Low);
+        nanosleep(&sleepTime, NULL);
+        GPIO_SetValue(LED3, GPIO_Value_Low);
+        nanosleep(&sleepTime, NULL);
+        GPIO_SetValue(LED3, GPIO_Value_High);
+        nanosleep(&sleepTime, NULL);
+        GPIO_SetValue(LED2, GPIO_Value_High);
         nanosleep(&sleepTime, NULL);
         GPIO_SetValue(LED1, GPIO_Value_High);
         nanosleep(&sleepTime, NULL);
