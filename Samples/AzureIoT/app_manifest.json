@@ -3,23 +3,13 @@
   "Name": "AzureIoT",
   "ComponentId": "819255ff-8640-41fd-aea7-f85d34c491d5",
   "EntryPoint": "/bin/app",
-  "CmdArgs": [ "--ScopeID", "0ne003FBF27" ],
+  "CmdArgs": [ "--ScopeID", "" ],
   "Capabilities": {
     "AllowedConnections": [
-      "global.azure-devices-provisioning.net",
-      "iotc-69aa548a-14b9-4c01-8581-dc0a8c915771.azure-devices.net",
-      "iotc-dc7210b7-0c62-4bea-b77b-fead89c28a68.azure-devices.net",
-      "iotc-8a15aadc-68dd-45d4-bd8c-fce83862e1e2.azure-devices.net",
-      "iotc-b641b363-de2f-4061-bca4-16864767167c.azure-devices.net",
-      "iotc-ab123ad9-6033-44f6-a5c7-8547fbb71491.azure-devices.net",
-      "iotc-42c2ead3-41c5-4ef1-8d6f-df623df95d36.azure-devices.net",
-      "iotc-b5918846-0329-450d-9275-10d31049caa8.azure-devices.net",
-      "iotc-87994982-61fb-4b5b-91d8-ad18987190e0.azure-devices.net",
-      "iotc-bff0bf4e-dc05-49e0-9a4f-910d07c7b038.azure-devices.net",
-      "iotc-9fee1399-06df-4018-8f5f-9a286a010d62.azure-devices.net"
+      "global.azure-devices-provisioning.net"
     ],
-    "Gpio": [ "$WIZNET_ASG210_USER_BUTTON_SW2", "$WIZNET_ASG210_STATUS_LED1_AZURE", "$WIZNET_ASG210_STATUS_LED2_WIFI" ],
     "DeviceAuthentication": "2dfbe86c-61cc-4170-8b88-15c21fcd15b1",
+    "Gpio": [ "$WIZNET_ASG210_USER_BUTTON_SW2", "$WIZNET_ASG210_STATUS_LED1_AZURE", "$WIZNET_ASG210_STATUS_LED2_WIFI" ],
     "NetworkConfig": true,
     "WifiConfig": true
   },
