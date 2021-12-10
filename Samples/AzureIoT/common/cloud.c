@@ -17,7 +17,7 @@
 // Specifically, it translates Azure IoT Hub specific concepts (events, device twin messages, device
 // methods, etc) into business domain concepts (telemetry, upload enabled, alarm raised)
 
-static const char azureSphereModelId[] = "dtmi:azurespherecentarlTea01:template014bh;1";
+static const char azureSphereModelId[] = "dtmi:com:example:azuresphere:thermometer;1";
 // KSIA Academy
 // another telemetry
 /* user code */
@@ -97,11 +97,13 @@ Cloud_Result Cloud_SendTelemetry(const Cloud_Telemetry *telemetry)
     JSON_Object *telemetryRoot = json_value_get_object(telemetryValue);
     json_object_dotset_number(telemetryRoot, "temperature", telemetry->temperature);
 
+#if 0
     // KSIA Academy
     // another telemetry
     json_object_dotset_number(telemetryRoot, "humidity", telemetry->humidity);
     /* user code */
     json_object_dotset_number(telemetryRoot, "voltage", telemetry->voltage);
+#endif
 
     /*
     * {"voltage":"0~20"}

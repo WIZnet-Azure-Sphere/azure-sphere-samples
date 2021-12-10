@@ -154,15 +154,17 @@ static void ButtonPressedCallbackHandler(UserInterface_Button button)
             // KSIA Academy
             // another telemetry
 
+            telemetry.temperature += 20;
+#if 0
             // Generate a simulated humidity.
             telemetry.humidity += 20;
 
             /* user code */
             // init telemetry values
 
-            // Generate a simulated temperature.            
-            telemetry.temperature += 20;
+            // Generate a simulated temperature.
             telemetry.voltage += 20;
+#endif
 
             Cloud_Result result = Cloud_SendTelemetry(&telemetry);
             if (result != Cloud_Result_OK) {
@@ -207,8 +209,10 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
     // KSIA Academy
     // another telemetry
     /* user code */
+#if 0
     telemetry.humidity = 50.0f;
     telemetry.voltage = 0.0f;
+#endif
     
     if (ConsumeEventLoopTimerEvent(timer) != 0) {
         exitCode = ExitCode_TelemetryTimer_Consume;
@@ -223,11 +227,13 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
         // KSIA Academy
         // another telemetry
         /* user code */
+#if 0
         float alpha = ((float)(rand() % 20)) / 20.0f - 1.0f; // between -1.0 and +1.0
         telemetry.humidity += alpha;
 
         float beta = (float)(rand() % 20);
         telemetry.voltage += beta;
+#endif
 
         Cloud_Result result = Cloud_SendTelemetry(&telemetry);
         if (result != Cloud_Result_OK) {

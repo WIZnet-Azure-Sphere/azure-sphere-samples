@@ -36,10 +36,12 @@ typedef void (*Cloud_ConnectionChangedCallbackType)(bool connected);
 typedef struct {
     float temperature;
     
+#if 0
     // KSIA Academy
     // another telemetry
     float humidity;
     float voltage;
+#endif
     /* user code */
 
 } Cloud_Telemetry;
