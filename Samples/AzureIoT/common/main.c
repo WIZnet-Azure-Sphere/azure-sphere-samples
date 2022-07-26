@@ -164,9 +164,50 @@ int main(int argc, char *argv[])
             exitCode = ExitCode_Main_EventLoopFail;
         }
 
-        if (qUART_getlen(&isu3) >= 93) {
+        if (qUART_getlen(&isu3) >= 80) {
+
             unsigned char isu3_temp[100];
-            qUART_cp(&isu3, isu3_temp, 93);
+            unsigned int qUART_len;
+
+            qUART_len = qUART_getlen(&isu3);
+            if (qUART_len > 100) {
+                qUART_cp(&isu3, isu3_temp, 100);
+            } else {
+                qUART_cp(&isu3, isu3_temp, qUART_len);
+            }
+
+            unsigned int i;
+            unsigned int stx = 0;
+            unsigned int etx = 0;
+            for (i = 0; i < qUART_len; i++) {
+                if (isu3_temp[i] == '{') {
+                    stx = i;
+                }
+                if (isu3_temp[i] == '}') {
+                    etx = i;
+                }
+            }
+
+            if (etx == 0) {
+                // 
+            } else {
+                if (stx != 0) {
+                    // flush 0 to stx
+                    qUART_dequeue(&isu3, isu3_temp, stx);
+                } else {
+                    memset(isu3_temp, 0, 100);
+                    if (etx > 99) {
+                        qUART_dequeue(&isu3, isu3_temp, 100);
+                    } else {
+                        qUART_dequeue(&isu3, isu3_temp, etx + 1);
+                    }
+
+                    qElement_enqueue(&element, (str_Element *)isu3_temp, 1);
+                    Log_Debug("qElement_getlen %d\r\n", qElement_getlen(&element));
+                    //qElement_disp(&element);
+                }
+            }
+#if 0
             if (isu3_temp[0] == '{') {
                 if (isu3_temp[92] == '}') {
                     isu3_temp[93] = 0;
@@ -220,6 +261,7 @@ int main(int argc, char *argv[])
 #endif
                 }
             }
+#endif
         }
     }
 
