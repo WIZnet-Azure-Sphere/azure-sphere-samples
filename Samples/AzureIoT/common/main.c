@@ -52,6 +52,7 @@
 #include <applibs/uart.h>
 #include <applibs/gpio.h>
 #include <hw/wiznet_asg210_v1.2.h>
+#include "queue.h"
 #endif
 
 static volatile sig_atomic_t exitCode = ExitCode_Success;
@@ -88,6 +89,12 @@ static int gpioButtonFd = -1;
 #endif
 static int gpioNRS232Fd = -1;
 static int gpioNSCL = -1;
+
+str_qUART isu3;
+unsigned char *isu3_buf_p;
+
+str_qElement element;
+str_Element *element_buf_p;
 
 EventRegistration *uartEventReg = NULL;
 
@@ -126,6 +133,18 @@ int main(int argc, char *argv[])
     SendUartMessage(uartFd, "ISU3_UART Ready\r\n");
     SendUartMessage(uartFd, "==================================\r\n");
 
+    isu3_buf_p = (uint8_t *)malloc(1024);
+    qUART_init(&isu3, isu3_buf_p, 1024);
+
+    element_buf_p =
+        (str_Element *)malloc(sizeof("{\
+        \"accel_amp_x\" : 0.0044,\
+        \"accel_amp_y\" : 0.0023,\
+        \"accel_amp_z\" : 0.0065,\
+        \"temperature\" : 28.7593\
+    } ")*1024);
+    qElement_init(&element, element_buf_p, 1024);
+
     bool isNetworkingReady = false;
     if ((Networking_IsNetworkingReady(&isNetworkingReady) == -1) || !isNetworkingReady) {
         Log_Debug("WARNING: Network is not ready. Device cannot connect until network is ready.\n");
@@ -142,6 +161,29 @@ int main(int argc, char *argv[])
         // Continue if interrupted by signal, e.g. due to breakpoint being set.
         if (result == EventLoop_Run_Failed && errno != EINTR) {
             exitCode = ExitCode_Main_EventLoopFail;
+        }
+
+        if (qUART_getlen(&isu3) >= 93) {
+            unsigned char isu3_temp[100];
+            qUART_cp(&isu3, isu3_temp, 93);
+            if (isu3_temp[0] == '{')
+            {
+                if (isu3_temp[92] == '}')
+                {
+                    isu3_temp[93] = 0;
+                    memset(isu3_temp, 0, 100);
+                    qUART_ndequeue(&isu3, isu3_temp, 93);
+
+                    qElement_1enqueue(&element, (str_Element *)isu3_temp);
+
+                    str_Element element_temp;
+                    memset((char *)&element_temp, 0, sizeof(str_Element));
+                    qElement_1dequeue(&element, &element_temp);
+
+                    SendUartMessage(uartFd, (char *)&element_temp);
+                    SendUartMessage(uartFd, "\r\n");
+                }
+            }
         }
     }
 
@@ -325,7 +367,8 @@ static void UartEventHandler(EventLoop *el, int fd, EventLoop_IoEvents events, v
         receiveBuffer[bytesRead] = 0;
         Log_Debug("UART received %d bytes: '%s'.\n", bytesRead, (char *)receiveBuffer);
 
-        SendUartMessage(uartFd, (char *)receiveBuffer);
+        qUART_enqueue(&isu3, (unsigned char *)receiveBuffer, (unsigned int)bytesRead);
+        //SendUartMessage(uartFd, (char *)receiveBuffer);
     }
 }
 #endif

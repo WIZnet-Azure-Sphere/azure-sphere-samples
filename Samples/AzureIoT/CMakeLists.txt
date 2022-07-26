@@ -8,7 +8,9 @@ project(AzureIoT C)
 azsphere_configure_tools(TOOLS_REVISION "21.10")
 azsphere_configure_api(TARGET_API_SET "12")
 
-add_executable(${PROJECT_NAME} "")
+add_executable(${PROJECT_NAME}
+                ${CMAKE_SOURCE_DIR}/WIZnet_Driver/queue.c
+                "")
 
 add_subdirectory(common)
 
@@ -21,7 +23,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
                            ${CMAKE_SOURCE_DIR}/common
                            ${AZURE_SPHERE_API_SET_DIR}/usr/include/azureiot
                            ${AZURE_SPHERE_API_SET_DIR}/usr/include/azure_prov_client
-                           ${AZURE_SPHERE_API_SET_DIR}/usr/include/azure_c_shared_utility)
+                           ${AZURE_SPHERE_API_SET_DIR}/usr/include/azure_c_shared_utility
+                           ${CMAKE_SOURCE_DIR}/WIZnet_Driver
+                           )
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Werror)
 target_compile_definitions(${PROJECT_NAME} PUBLIC AZURE_IOT_HUB_CONFIGURED)
