@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     exitCode = InitPeripheralsAndHandlers();
 
     SendUartMessage(uartFd, "==================================\r\n");
-    SendUartMessage(uartFd, "UART_HLApp_mt3620_BareMetal\r\n");
+    SendUartMessage(uartFd, "ISU3_UART Ready\r\n");
     SendUartMessage(uartFd, "==================================\r\n");
 
     bool isNetworkingReady = false;
