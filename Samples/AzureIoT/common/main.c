@@ -55,6 +55,9 @@
 #include "queue.h"
 #endif
 
+//
+#include "azure_iot.h"
+
 static volatile sig_atomic_t exitCode = ExitCode_Success;
 
 // Initialization/Cleanup
@@ -66,6 +69,9 @@ static void ExitCodeCallbackHandler(ExitCode ec);
 static void ButtonPressedCallbackHandler(UserInterface_Button button);
 
 // Cloud
+//
+// AzureIoT_SendTelemetry(const char *jsonMessage, void *context);
+//
 static const char *CloudResultToString(Cloud_Result result);
 static void ConnectionChangedCallbackHandler(bool connected);
 static void DisplayAlertCallbackHandler(const char *alertMessage);
@@ -136,22 +142,17 @@ int main(int argc, char *argv[])
     isu3_buf_p = (uint8_t *)malloc(1024);
     qUART_init(&isu3, isu3_buf_p, 1024);
 
-    element_buf_p =
-        (str_Element *)malloc(sizeof("{\
-        \"accel_amp_x\" : 0.0044,\
-        \"accel_amp_y\" : 0.0023,\
-        \"accel_amp_z\" : 0.0065,\
-        \"temperature\" : 28.7593\
-    } ")*1024);
-    qElement_init(&element, element_buf_p, 1024);
+    element_buf_p = (str_Element *)malloc(sizeof(str_Element) * 100);
+    Log_Debug("element_buf_p = 0x%x\r\n", element_buf_p);
+    qElement_init(&element, element_buf_p, 100);
 
     bool isNetworkingReady = false;
     if ((Networking_IsNetworkingReady(&isNetworkingReady) == -1) || !isNetworkingReady) {
         Log_Debug("WARNING: Network is not ready. Device cannot connect until network is ready.\n");
 
         // KSIA Academy
-        // control WiFi LED 
-        /* user code */   
+        // control WiFi LED
+        /* user code */
         UserInterface_SetStatus_WifiLED(isNetworkingReady);
     }
 
@@ -166,22 +167,57 @@ int main(int argc, char *argv[])
         if (qUART_getlen(&isu3) >= 93) {
             unsigned char isu3_temp[100];
             qUART_cp(&isu3, isu3_temp, 93);
-            if (isu3_temp[0] == '{')
-            {
-                if (isu3_temp[92] == '}')
-                {
+            if (isu3_temp[0] == '{') {
+                if (isu3_temp[92] == '}') {
                     isu3_temp[93] = 0;
                     memset(isu3_temp, 0, 100);
-                    qUART_ndequeue(&isu3, isu3_temp, 93);
+                    qUART_dequeue(&isu3, isu3_temp, 93);
 
-                    qElement_1enqueue(&element, (str_Element *)isu3_temp);
+                    qElement_enqueue(&element, (str_Element *)isu3_temp, 1);
+                    Log_Debug("qElement_getlen %d\r\n", qElement_getlen(&element));
+                    qElement_disp(&element);
+#if 0
+					str_Element element_temp;
+					memset((char *)&element_temp, 0, sizeof(str_Element));
+					qElement_1dequeue(&element, &element_temp);
 
+					SendUartMessage(uartFd, (char *)&element_temp);
+					SendUartMessage(uartFd, "\r\n");
+#endif
+
+#if 0
                     str_Element element_temp;
                     memset((char *)&element_temp, 0, sizeof(str_Element));
-                    qElement_1dequeue(&element, &element_temp);
 
-                    SendUartMessage(uartFd, (char *)&element_temp);
-                    SendUartMessage(uartFd, "\r\n");
+                    if (qElement_getlen(&element) > 0) {
+                        qElement_dequeue(&element, &element_temp, 1);
+
+                        SendUartMessage(uartFd, (char *)&element_temp);
+                        SendUartMessage(uartFd, "\r\n");
+
+                        #if 0
+                        AzureIoT_Result result =
+                            AzureIoT_SendTelemetry((char *)&element_temp, NULL);
+
+                        if (result != AzureIoT_Result_OK) {
+                            Log_Debug(
+                                "WARNING: Could not send thermometer telemetry to cloud: %s\n",
+                                CloudResultToString(result));
+                            SendUartMessage(
+                                uartFd,
+                                "WARNING: Could not send thermometer telemetry to cloud: %s\n");
+                        } else {
+                            Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
+                            SendUartMessage(
+                                uartFd,
+                                "INFO: Telemetry upload disabled; not sending telemetry.\n");
+                        }
+                        #endif
+
+                    } else {
+                        SendUartMessage(uartFd, "WARNING: NO DATA\n");
+                    }
+#endif
                 }
             }
         }
@@ -236,7 +272,7 @@ static void ButtonPressedCallbackHandler(UserInterface_Button button)
             Cloud_Result result = Cloud_SendTelemetry(&telemetry);
             if (result != Cloud_Result_OK) {
                 Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
-                            CloudResultToString(result));
+                          CloudResultToString(result));
             } else {
                 Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
             }
@@ -254,7 +290,7 @@ static void ConnectionChangedCallbackHandler(bool connected)
     isConnected = connected;
 
     if (isConnected) {
-        
+
         // KSIA Academy
         // control Azure Connection LED
         /* user code */
@@ -265,7 +301,7 @@ static void ConnectionChangedCallbackHandler(bool connected)
             Log_Debug("WARNING: Could not send device details to cloud: %s\n",
                       CloudResultToString(result));
         }
-    } 
+    }
 }
 
 static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
@@ -280,7 +316,7 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
     telemetry.humidity = 50.0f;
     telemetry.voltage = 0.0f;
 #endif
-    
+
     if (ConsumeEventLoopTimerEvent(timer) != 0) {
         exitCode = ExitCode_TelemetryTimer_Consume;
         return;
@@ -290,7 +326,7 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
         // Generate a simulated temperature.
         float delta = ((float)(rand() % 20)) / 20.0f - 1.0f; // between -1.0 and +1.0
         telemetry.temperature += delta;
-            
+
         // KSIA Academy
         // another telemetry
         /* user code */
@@ -302,13 +338,34 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
         telemetry.voltage += beta;
 #endif
 
-        Cloud_Result result = Cloud_SendTelemetry(&telemetry);
-        if (result != Cloud_Result_OK) {
-            Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
-                        CloudResultToString(result));
+        // Cloud_Result result = Cloud_SendTelemetry(&telemetry);
+
+        str_Element element_temp;
+        memset((char *)&element_temp, 0, sizeof(str_Element));
+
+        if (qElement_getlen(&element) > 0) {
+            qElement_dequeue(&element, &element_temp, 1);
+
+            SendUartMessage(uartFd, (char *)&element_temp);
+            SendUartMessage(uartFd, "\r\n");
+
+            AzureIoT_Result result = AzureIoT_SendTelemetry((char *)&element_temp, NULL);
+
+            if (result != AzureIoT_Result_OK) {
+                Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
+                          CloudResultToString(result));
+                SendUartMessage(uartFd,
+                                "WARNING: Could not send thermometer telemetry to cloud: %s\n");
+            } else {
+                Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
+                SendUartMessage(uartFd,
+                                "INFO: Telemetry upload disabled; not sending telemetry.\n");
+            }
+
         } else {
-            Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
+            SendUartMessage(uartFd, "WARNING: NO DATA\n");
         }
+        
     }
 }
 
@@ -368,7 +425,7 @@ static void UartEventHandler(EventLoop *el, int fd, EventLoop_IoEvents events, v
         Log_Debug("UART received %d bytes: '%s'.\n", bytesRead, (char *)receiveBuffer);
 
         qUART_enqueue(&isu3, (unsigned char *)receiveBuffer, (unsigned int)bytesRead);
-        //SendUartMessage(uartFd, (char *)receiveBuffer);
+        // SendUartMessage(uartFd, (char *)receiveBuffer);
     }
 }
 #endif
@@ -430,7 +487,7 @@ static ExitCode InitPeripheralsAndHandlers(void)
         return ExitCode_Init_RegisterIo;
     }
 
-    #if 0
+#if 0
     // Open WIZNET_ASG210_USER_BUTTON_SW2 GPIO as input, and set up a timer to poll it
     Log_Debug("Opening WIZNET_ASG210_USER_BUTTON_SW2 as input.\n");
     gpioButtonFd = GPIO_OpenAsInput(WIZNET_ASG210_USER_BUTTON_SW2);
@@ -438,10 +495,10 @@ static ExitCode InitPeripheralsAndHandlers(void)
         Log_Debug("ERROR: Could not open button GPIO: %s (%d).\n", strerror(errno), errno);
         return ExitCode_Init_OpenButton;
     }
-    #endif
+#endif
 #endif
 
-    struct timespec telemetryPeriod = {.tv_sec = 5, .tv_nsec = 0};
+    struct timespec telemetryPeriod = {.tv_sec = 1, .tv_nsec = 0};
     telemetryTimer =
         CreateEventLoopPeriodicTimer(eventLoop, &TelemetryTimerCallbackHandler, &telemetryPeriod);
     if (telemetryTimer == NULL) {
@@ -458,8 +515,7 @@ static ExitCode InitPeripheralsAndHandlers(void)
     void *connectionContext = Options_GetConnectionContext();
 
     return Cloud_Initialize(eventLoop, connectionContext, ExitCodeCallbackHandler,
-                            DisplayAlertCallbackHandler,
-                            ConnectionChangedCallbackHandler);
+                            DisplayAlertCallbackHandler, ConnectionChangedCallbackHandler);
 }
 
 /// <summary>
@@ -467,6 +523,9 @@ static ExitCode InitPeripheralsAndHandlers(void)
 /// </summary>
 static void ClosePeripheralsAndHandlers(void)
 {
+    free(isu3_buf_p);
+    free(element_buf_p);
+
     DisposeEventLoopTimer(telemetryTimer);
     Cloud_Cleanup();
     UserInterface_Cleanup();

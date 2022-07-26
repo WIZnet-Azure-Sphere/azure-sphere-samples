@@ -577,7 +577,7 @@ void qElement_disp(str_qElement *device)
 {
     //#define DBG_qElement_DISP_INFO
 
-    #if 0
+    #if 1
     unsigned int i, j;
     #endif
 
@@ -592,41 +592,11 @@ void qElement_disp(str_qElement *device)
     p = device->pool;
     p += device->rp;
 
-#ifdef DBG_qElement_DISP_INFO
-    printf(
-        "temperature,humidity,eco2,tvoc,accel.x,accel.y,accel.z,mag.x,mag.y,mag.z,battery,door,mv."
-        "x,mv.y,mv.z,amp.x,amp.y,amp.z\r\n");
-#endif
-
-    #if 0
+    #if 1
     j = (device->rp);
     for (i = 0; i < qElement_getlen(device); i++) {
         printf("Enqueued %d : ", j + i);
-        printf("%lf,", p->mv.extract.temperature);
-        printf("%lf,", p->mv.extract.humidity);
-        printf("%lf,", p->mv.extract.eco2);
-        printf("%lf,", p->mv.extract.tvoc);
-        printf("%lf,", p->mv.extract.accel.x);
-        printf("%lf,", p->mv.extract.accel.y);
-        printf("%lf,", p->mv.extract.accel.z);
-#ifdef USE_GYRO
-        printf("%lf,", p->mv.extract.gyro.x);
-        printf("%lf,", p->mv.extract.gyro.y);
-        printf("%lf,", p->mv.extract.gyro.z);
-#endif
-        printf("%lf,", p->mv.extract.mag.x);
-        printf("%lf,", p->mv.extract.mag.y);
-        printf("%lf,", p->mv.extract.mag.z);
-        printf("%lf,", p->mv.extract.battery);
-#ifdef USE_NRF_DOOR
-        printf("%d,", p->mv.extract.door);
-#endif
-        printf("%lf,", p->mv.mv.x);
-        printf("%lf,", p->mv.mv.y);
-        printf("%lf,", p->mv.mv.z);
-        printf("%lf,", p->amp.x);
-        printf("%lf,", p->amp.y);
-        printf("%lf\r\n", p->amp.z);
+        printf("%s,", p->element);
         p++;
     }
     #endif
