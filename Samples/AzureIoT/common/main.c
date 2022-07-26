@@ -107,10 +107,6 @@ EventRegistration *uartEventReg = NULL;
 void SendUartMessage(int uartFd, const char *dataToSend);
 #endif
 
-// KSIA Academy
-// another telemetry
-/* user code */
-
 /// <summary>
 ///     Signal handler for termination requests. This handler must be async-signal-safe.
 /// </summary>
@@ -136,7 +132,7 @@ int main(int argc, char *argv[])
     exitCode = InitPeripheralsAndHandlers();
 
     SendUartMessage(uartFd, "==================================\r\n");
-    SendUartMessage(uartFd, "ISU3_UART Ready\r\n");
+    SendUartMessage(uartFd, "     AZURE SPHERE IoT by KSIA     \r\n");
     SendUartMessage(uartFd, "==================================\r\n");
 
     isu3_buf_p = (uint8_t *)malloc(1024);
@@ -150,9 +146,6 @@ int main(int argc, char *argv[])
     if ((Networking_IsNetworkingReady(&isNetworkingReady) == -1) || !isNetworkingReady) {
         Log_Debug("WARNING: Network is not ready. Device cannot connect until network is ready.\n");
 
-        // KSIA Academy
-        // control WiFi LED
-        /* user code */
         UserInterface_SetStatus_WifiLED(isNetworkingReady);
     }
 
@@ -207,61 +200,6 @@ int main(int argc, char *argv[])
                     //qElement_disp(&element);
                 }
             }
-#if 0
-            if (isu3_temp[0] == '{') {
-                if (isu3_temp[92] == '}') {
-                    isu3_temp[93] = 0;
-                    memset(isu3_temp, 0, 100);
-                    qUART_dequeue(&isu3, isu3_temp, 93);
-
-                    qElement_enqueue(&element, (str_Element *)isu3_temp, 1);
-                    Log_Debug("qElement_getlen %d\r\n", qElement_getlen(&element));
-                    qElement_disp(&element);
-#if 0
-					str_Element element_temp;
-					memset((char *)&element_temp, 0, sizeof(str_Element));
-					qElement_1dequeue(&element, &element_temp);
-
-					SendUartMessage(uartFd, (char *)&element_temp);
-					SendUartMessage(uartFd, "\r\n");
-#endif
-
-#if 0
-                    str_Element element_temp;
-                    memset((char *)&element_temp, 0, sizeof(str_Element));
-
-                    if (qElement_getlen(&element) > 0) {
-                        qElement_dequeue(&element, &element_temp, 1);
-
-                        SendUartMessage(uartFd, (char *)&element_temp);
-                        SendUartMessage(uartFd, "\r\n");
-
-                        #if 0
-                        AzureIoT_Result result =
-                            AzureIoT_SendTelemetry((char *)&element_temp, NULL);
-
-                        if (result != AzureIoT_Result_OK) {
-                            Log_Debug(
-                                "WARNING: Could not send thermometer telemetry to cloud: %s\n",
-                                CloudResultToString(result));
-                            SendUartMessage(
-                                uartFd,
-                                "WARNING: Could not send thermometer telemetry to cloud: %s\n");
-                        } else {
-                            Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
-                            SendUartMessage(
-                                uartFd,
-                                "INFO: Telemetry upload disabled; not sending telemetry.\n");
-                        }
-                        #endif
-
-                    } else {
-                        SendUartMessage(uartFd, "WARNING: NO DATA\n");
-                    }
-#endif
-                }
-            }
-#endif
         }
     }
 
@@ -296,19 +234,10 @@ static void ButtonPressedCallbackHandler(UserInterface_Button button)
     if (button == UserInterface_Button_A) {
         if (isConnected) {
 
-            // KSIA Academy
-            // another telemetry
-
             telemetry.temperature += 20;
 #if 0
             // Generate a simulated humidity.
             telemetry.humidity += 20;
-
-            /* user code */
-            // init telemetry values
-
-            // Generate a simulated temperature.
-            telemetry.voltage += 20;
 #endif
 
             Cloud_Result result = Cloud_SendTelemetry(&telemetry);
@@ -332,10 +261,6 @@ static void ConnectionChangedCallbackHandler(bool connected)
     isConnected = connected;
 
     if (isConnected) {
-
-        // KSIA Academy
-        // control Azure Connection LED
-        /* user code */
         UserInterface_SetStatus_AzureLED(isConnected);
 
         Cloud_Result result = Cloud_SendDeviceDetails(serialNumber);
@@ -348,15 +273,12 @@ static void ConnectionChangedCallbackHandler(bool connected)
 
 static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
 {
+
     // init telemetry values
     telemetry.temperature = 30.f;
-
-    // KSIA Academy
-    // another telemetry
-    /* user code */
+    
 #if 0
     telemetry.humidity = 50.0f;
-    telemetry.voltage = 0.0f;
 #endif
 
     if (ConsumeEventLoopTimerEvent(timer) != 0) {
@@ -369,19 +291,26 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
         float delta = ((float)(rand() % 20)) / 20.0f - 1.0f; // between -1.0 and +1.0
         telemetry.temperature += delta;
 
-        // KSIA Academy
-        // another telemetry
-        /* user code */
 #if 0
         float alpha = ((float)(rand() % 20)) / 20.0f - 1.0f; // between -1.0 and +1.0
         telemetry.humidity += alpha;
-
-        float beta = (float)(rand() % 20);
-        telemetry.voltage += beta;
 #endif
 
-        // Cloud_Result result = Cloud_SendTelemetry(&telemetry);
+#if 0
 
+        Cloud_Result result = Cloud_SendTelemetry(&telemetry);
+
+        if (result != Cloud_Result_OK) {
+                Log_Debug("WARNING: Could not send thermometer telemetry to cloud: %s\n",
+                          CloudResultToString(result));
+                SendUartMessage(uartFd,
+                                "WARNING: Could not send thermometer telemetry to cloud: %s\n");
+            } else {
+                Log_Debug("INFO: Telemetry upload disabled; not sending telemetry.\n");
+                SendUartMessage(uartFd,
+                                "INFO: Telemetry upload disabled; not sending telemetry.\n");
+            }
+#else
         str_Element element_temp;
         memset((char *)&element_temp, 0, sizeof(str_Element));
 
@@ -407,7 +336,8 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
         } else {
             SendUartMessage(uartFd, "WARNING: NO DATA\n");
         }
-        
+#endif
+
     }
 }
 
