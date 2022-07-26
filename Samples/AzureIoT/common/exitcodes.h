@@ -55,6 +55,14 @@ typedef enum {
 
     ExitCode_Init_AzureIoTDoWorkTimer = 30,
     ExitCode_AzureIoTDoWorkTimer_Consume = 31,
+// 20220726 taylor
+#if 1
+    ExitCode_Init_OpenButton = 32,
+    ExitCode_Init_RegisterIo = 33,
+    ExitCode_UartEvent_Read = 34,
+    ExitCode_Init_UartOpen = 35,
+    ExitCode_SendMessage_Write = 36,
+#endif
 } ExitCode;
 
 /// <summary>

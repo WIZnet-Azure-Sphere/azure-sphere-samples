@@ -9,7 +9,8 @@
       "global.azure-devices-provisioning.net"
     ],
     "DeviceAuthentication": "2dfbe86c-61cc-4170-8b88-15c21fcd15b1",
-    "Gpio": [ "$WIZNET_ASG210_USER_BUTTON_SW2", "$WIZNET_ASG210_STATUS_LED1_AZURE", "$WIZNET_ASG210_STATUS_LED2_WIFI" ],
+    "Gpio": [ "$WIZNET_ASG210_USER_BUTTON_SW2", "$WIZNET_ASG210_ISU3_N232_485_SEL", "$WIZNET_ASG210_ISU3_NSDA_RXD_SEL", "$WIZNET_ASG210_STATUS_LED1_AZURE", "$WIZNET_ASG210_STATUS_LED2_WIFI" ],
+    "Uart": [ "$WIZNET_ASG210_ISU3_UART" ],
     "NetworkConfig": true,
     "WifiConfig": true
   },

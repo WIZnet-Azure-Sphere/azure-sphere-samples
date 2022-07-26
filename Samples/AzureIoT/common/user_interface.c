@@ -102,6 +102,8 @@ ExitCode UserInterface_Initialise(EventLoop *el,
     failureCallbackFunction = failureCallback;
     buttonPressedCallbackFunction = buttonPressedCallback;
 
+// 20220726 taylor
+#if 1
     // Open USER_BUTTON GPIO as input
     Log_Debug("Opening SAMPLE_BUTTON_1 as input.\n");
     buttonAGpioFd = GPIO_OpenAsInput(WIZNET_ASG210_USER_BUTTON_SW2);
@@ -109,6 +111,7 @@ ExitCode UserInterface_Initialise(EventLoop *el,
         Log_Debug("ERROR: Could not open USER_BUTTON: %s (%d).\n", strerror(errno), errno);
         return ExitCode_Init_Button;
     }    
+#endif
 
     // WIFI_CONNECTION_LED is used to show state
     Log_Debug("Opening WIFI_CONNECTION_LED as output.\n");

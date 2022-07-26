@@ -47,6 +47,13 @@
 #include "options.h"
 #include "connection.h"
 
+// 20220726 taylor
+#if 1
+#include <applibs/uart.h>
+#include <applibs/gpio.h>
+#include <hw/wiznet_asg210_v1.2.h>
+#endif
+
 static volatile sig_atomic_t exitCode = ExitCode_Success;
 
 // Initialization/Cleanup
@@ -72,6 +79,20 @@ static bool isConnected = false;
 // Cloud Property/Telemetry
 static const char *serialNumber = "ksiatuser01";
 static Cloud_Telemetry telemetry = {.temperature = 30.f};
+
+// 20220726 taylor
+#if 1
+static int uartFd = -1;
+#if 0
+static int gpioButtonFd = -1;
+#endif
+static int gpioNRS232Fd = -1;
+static int gpioNSCL = -1;
+
+EventRegistration *uartEventReg = NULL;
+
+void SendUartMessage(int uartFd, const char *dataToSend);
+#endif
 
 // KSIA Academy
 // another telemetry
@@ -100,6 +121,10 @@ int main(int argc, char *argv[])
     }
 
     exitCode = InitPeripheralsAndHandlers();
+
+    SendUartMessage(uartFd, "==================================\r\n");
+    SendUartMessage(uartFd, "UART_HLApp_mt3620_BareMetal\r\n");
+    SendUartMessage(uartFd, "==================================\r\n");
 
     bool isNetworkingReady = false;
     if ((Networking_IsNetworkingReady(&isNetworkingReady) == -1) || !isNetworkingReady) {
@@ -245,6 +270,66 @@ static void TelemetryTimerCallbackHandler(EventLoopTimer *timer)
     }
 }
 
+// 20220726 taylor
+#if 1
+/// <summary>
+///     Helper function to send a fixed message via the given UART.
+/// </summary>
+/// <param name="uartFd">The open file descriptor of the UART to write to</param>
+/// <param name="dataToSend">The data to send over the UART</param>
+void SendUartMessage(int uartFd, const char *dataToSend)
+{
+    size_t totalBytesSent = 0;
+    size_t totalBytesToSend = strlen(dataToSend);
+    int sendIterations = 0;
+    while (totalBytesSent < totalBytesToSend) {
+        sendIterations++;
+
+        // Send as much of the remaining data as possible
+        size_t bytesLeftToSend = totalBytesToSend - totalBytesSent;
+        const char *remainingMessageToSend = dataToSend + totalBytesSent;
+        ssize_t bytesSent = write(uartFd, remainingMessageToSend, bytesLeftToSend);
+        if (bytesSent == -1) {
+            Log_Debug("ERROR: Could not write to UART: %s (%d).\n", strerror(errno), errno);
+            exitCode = ExitCode_SendMessage_Write;
+            return;
+        }
+
+        totalBytesSent += (size_t)bytesSent;
+    }
+
+    Log_Debug("Sent %zu bytes over UART in %d calls.\n", totalBytesSent, sendIterations);
+}
+
+/// <summary>
+///     Handle UART event: if there is incoming data, print it.
+///     This satisfies the EventLoopIoCallback signature.
+/// </summary>
+static void UartEventHandler(EventLoop *el, int fd, EventLoop_IoEvents events, void *context)
+{
+    const size_t receiveBufferSize = 256;
+    uint8_t receiveBuffer[receiveBufferSize + 1]; // allow extra byte for string termination
+    ssize_t bytesRead;
+
+    // Read incoming UART data. It is expected behavior that messages may be received in multiple
+    // partial chunks.
+    bytesRead = read(uartFd, receiveBuffer, receiveBufferSize);
+    if (bytesRead == -1) {
+        Log_Debug("ERROR: Could not read UART: %s (%d).\n", strerror(errno), errno);
+        exitCode = ExitCode_UartEvent_Read;
+        return;
+    }
+
+    if (bytesRead > 0) {
+        // Null terminate the buffer to make it a valid string, and print it
+        receiveBuffer[bytesRead] = 0;
+        Log_Debug("UART received %d bytes: '%s'.\n", bytesRead, (char *)receiveBuffer);
+
+        SendUartMessage(uartFd, (char *)receiveBuffer);
+    }
+}
+#endif
+
 /// <summary>
 ///     Set up SIGTERM termination handler, initialize peripherals, and set up event handlers.
 /// </summary>
@@ -264,6 +349,54 @@ static ExitCode InitPeripheralsAndHandlers(void)
         Log_Debug("Could not create event loop.\n");
         return ExitCode_Init_EventLoop;
     }
+
+// 20220726 taylor
+#if 1
+    // Open WIZNET_ASG210_ISU3_N232_485_SEL GPIO, set as output with value GPIO_Value_Low for using
+    // RS232 instead of RS485
+    Log_Debug("Opening WIZNET_ASG210_ISU3_N232_485_SEL as output.\n");
+    gpioNRS232Fd = GPIO_OpenAsOutput(WIZNET_ASG210_ISU3_N232_485_SEL, GPIO_OutputMode_PushPull,
+                                     GPIO_Value_Low);
+    if (gpioNRS232Fd == -1) {
+        Log_Debug("ERROR: Could not open button GPIO: %s (%d).\n", strerror(errno), errno);
+        return ExitCode_Init_OpenButton;
+    }
+
+    // Open WIZNET_ASG210_ISU3_NSDA_RXD_SEL GPIO, set as output with value GPIO_Value_High for using
+    // RXD3 instead of I2C_SDA
+    Log_Debug("Opening WIZNET_ASG210_ISU3_NSDA_RXD_SEL as output.\n");
+    gpioNSCL = GPIO_OpenAsOutput(WIZNET_ASG210_ISU3_NSDA_RXD_SEL, GPIO_OutputMode_PushPull,
+                                 GPIO_Value_High);
+    if (gpioNSCL == -1) {
+        Log_Debug("ERROR: Could not open button GPIO: %s (%d).\n", strerror(errno), errno);
+        return ExitCode_Init_OpenButton;
+    }
+
+    // Create a UART_Config object, open the UART and set up UART event handler
+    UART_Config uartConfig;
+    UART_InitConfig(&uartConfig);
+    uartConfig.baudRate = 115200;
+    uartConfig.flowControl = UART_FlowControl_None;
+    uartFd = UART_Open(WIZNET_ASG210_ISU3_UART, &uartConfig);
+    if (uartFd == -1) {
+        Log_Debug("ERROR: Could not open UART: %s (%d).\n", strerror(errno), errno);
+        return ExitCode_Init_UartOpen;
+    }
+    uartEventReg = EventLoop_RegisterIo(eventLoop, uartFd, EventLoop_Input, UartEventHandler, NULL);
+    if (uartEventReg == NULL) {
+        return ExitCode_Init_RegisterIo;
+    }
+
+    #if 0
+    // Open WIZNET_ASG210_USER_BUTTON_SW2 GPIO as input, and set up a timer to poll it
+    Log_Debug("Opening WIZNET_ASG210_USER_BUTTON_SW2 as input.\n");
+    gpioButtonFd = GPIO_OpenAsInput(WIZNET_ASG210_USER_BUTTON_SW2);
+    if (gpioButtonFd == -1) {
+        Log_Debug("ERROR: Could not open button GPIO: %s (%d).\n", strerror(errno), errno);
+        return ExitCode_Init_OpenButton;
+    }
+    #endif
+#endif
 
     struct timespec telemetryPeriod = {.tv_sec = 5, .tv_nsec = 0};
     telemetryTimer =
