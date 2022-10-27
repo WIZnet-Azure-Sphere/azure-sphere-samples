@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(AzureIoT C)
 
-azsphere_configure_tools(TOOLS_REVISION "21.10")
-azsphere_configure_api(TARGET_API_SET "12")
+azsphere_configure_tools(TOOLS_REVISION "22.09")
+azsphere_configure_api(TARGET_API_SET "14")
 
 add_executable(${PROJECT_NAME}
                 ${CMAKE_SOURCE_DIR}/WIZnet_Driver/queue.c
