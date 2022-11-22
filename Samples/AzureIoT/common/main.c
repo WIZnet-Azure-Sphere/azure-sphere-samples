@@ -159,12 +159,12 @@ int main(int argc, char *argv[])
 
         if (qUART_getlen(&isu3) >= 80) {
 
-            unsigned char isu3_temp[100];
+            unsigned char isu3_temp[135];
             unsigned int qUART_len;
 
             qUART_len = qUART_getlen(&isu3);
             if (qUART_len > 100) {
-                qUART_cp(&isu3, isu3_temp, 100);
+                qUART_cp(&isu3, isu3_temp, 135);
             } else {
                 qUART_cp(&isu3, isu3_temp, qUART_len);
             }
@@ -188,9 +188,9 @@ int main(int argc, char *argv[])
                     // flush 0 to stx
                     qUART_dequeue(&isu3, isu3_temp, stx);
                 } else {
-                    memset(isu3_temp, 0, 100);
+                    memset(isu3_temp, 0, 135);
                     if (etx > 99) {
-                        qUART_dequeue(&isu3, isu3_temp, 100);
+                        qUART_dequeue(&isu3, isu3_temp, 135);
                     } else {
                         qUART_dequeue(&isu3, isu3_temp, etx + 1);
                     }

@@ -14,7 +14,8 @@ typedef struct _str_qUART
 
 typedef struct _str_Element {
     #if 1
-    unsigned char element[sizeof("{\"accel_amp_x\": 0.0044, \"accel_amp_y\": 0.0023, \"accel_amp_z\": 0.0065, \"temperature\": 28.7593}")];
+    //unsigned char element[sizeof("{\"accel_amp_x\": 0.0044, \"accel_amp_y\": 0.0023, \"accel_amp_z\": 0.0065, \"temperature\": 28.7593}")];
+    unsigned char element[sizeof("{\"accel_amp_x\": 0.0044, \"accel_amp_y\": 0.0023, \"accel_amp_z\": 0.0065, \"temperature\": 28.7593, \"timestamp\": \"2022-11-22T17:43:54Z\"}")];
     #else
     unsigned char element[sizeof("{\
         \"accel_amp_x\" : 0.0044,\
